@@ -1,0 +1,16 @@
+name: Auto-sync job tracker
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}   # lets you also trigger it manually from the Actions tab
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger backend sync
+        run: |
+          curl -sS -X POST "${{ secrets.SYNC_URL }}/api/sync" \
+            -H "X-Api-Key: ${{ secrets.SYNC_API_SECRET }}" \
+            --fail-with-body

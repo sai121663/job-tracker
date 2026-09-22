@@ -1,0 +1,311 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0f1115;
+  color: #e8e8e8;
+}
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.subtitle {
+  color: #9a9a9a;
+  margin-top: 4px;
+}
+
+.banner {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.banner.warning {
+  background: #2b2410;
+  border: 1px solid #6b5a1a;
+  color: #f0d878;
+}
+
+.banner code {
+  background: #1a1d24;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.toolbar button {
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: none;
+  background: #4f8cff;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toolbar button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.sync-message {
+  color: #9a9a9a;
+  font-size: 0.85rem;
+}
+
+.ai-indicator {
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.ai-indicator.on {
+  background: #1a2e1a;
+  color: #6fd67f;
+  border: 1px solid #2d4d2d;
+}
+
+.ai-indicator.off {
+  background: #2a2a2a;
+  color: #888;
+  border: 1px solid #3a3a3a;
+}
+
+.ai-tag {
+  display: inline-block;
+  background: #4f8cff;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.muted {
+  color: #777;
+  font-size: 0.9rem;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.category-row {
+  background: #1a1d24;
+  border: 1px solid #2a2e38;
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.category-row summary {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f0f0f0;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.category-row summary::-webkit-details-marker {
+  display: none;
+}
+
+.category-row summary::before {
+  content: "\25B8  ";
+  color: #4f8cff;
+}
+
+.category-row[open] summary::before {
+  content: "\25BE  ";
+}
+
+.category-count {
+  font-weight: 400;
+  color: #888;
+  font-size: 0.82rem;
+}
+
+.category-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.empty {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.card {
+  background: #1e2129;
+  border-radius: 8px;
+  padding: 14px 16px;
+  border: 1px solid #2a2e38;
+}
+
+.card-top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.card-timestamp {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.star-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: #666;
+}
+
+.star-btn.starred {
+  color: #f5c518;
+}
+
+.star-btn:hover {
+  color: #f5c518;
+}
+
+.card-from {
+  font-size: 0.92rem;
+  color: #ccc;
+  margin: 0 0 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sender-email {
+  font-size: 0.78rem;
+  color: #999;
+}
+
+.position-highlight {
+  font-weight: 700;
+  color: #6fd67f;
+}
+
+.card-summary {
+  font-size: 0.92rem;
+  color: #ccc;
+  margin: 0 0 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.full-email {
+  margin: 0 0 10px;
+}
+
+.full-email summary {
+  font-size: 0.75rem;
+  color: #4f8cff;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.full-email summary::-webkit-details-marker {
+  display: none;
+}
+
+.full-email summary::before {
+  content: "\25B8  ";
+}
+
+.full-email[open] summary::before {
+  content: "\25BE  ";
+}
+
+.full-email-body {
+  margin-top: 8px;
+  padding: 10px;
+  background: #0f1115;
+  border: 1px solid #2a2e38;
+  border-radius: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  font-size: 0.75rem;
+  color: #ccc;
+  line-height: 1.5;
+}
+
+/* Gmail-style emails assume a white background - render them in a light
+   box (rather than forcing our dark theme's colors onto arbitrary email
+   markup) so the original formatting reads correctly. */
+.full-email-html {
+  margin-top: 8px;
+  padding: 14px;
+  background: #ffffff;
+  color: #1a1a1a;
+  border: 1px solid #2a2e38;
+  border-radius: 6px;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.full-email-html img {
+  max-width: 100%;
+  height: auto;
+}
+
+.full-email-html a {
+  color: #1a73e8;
+}
+
+.full-email-html table {
+  max-width: 100%;
+}
+
