@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import os
 import time
+from datetime import datetime, timezone
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
@@ -128,6 +129,8 @@ def sync():
         if using_llm:
             time.sleep(2.1)  # stay under Groq's free-tier ~30 req/min limit
 
+    db.set_last_synced_at(datetime.now(timezone.utc).isoformat())
+
     return jsonify(
         {
             "fetched": len(messages),
@@ -137,6 +140,11 @@ def sync():
             "usedAi": using_llm,
         }
     )
+
+
+@app.route("/api/last-sync", methods=["GET"])
+def last_sync():
+    return jsonify({"lastSyncedAt": db.get_last_synced_at()})
 
 
 @app.route("/api/applications", methods=["GET"])

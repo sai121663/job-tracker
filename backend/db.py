@@ -35,6 +35,16 @@ CREATE TABLE IF NOT EXISTS applications (
 );
 """
 
+# Single-row table (id is always 1) tracking when /api/sync last actually
+# ran - separate from the applications themselves, since a sync that finds
+# zero new emails still counts as "we checked".
+SYNC_STATUS_SCHEMA = """
+CREATE TABLE IF NOT EXISTS sync_status (
+    id INTEGER PRIMARY KEY,
+    last_synced_at TEXT
+);
+"""
+
 # Columns added after the original CREATE TABLE went out - kept as
 # ADD COLUMN IF NOT EXISTS so both a brand-new DB and an older one land on
 # the same schema without needing separate migration logic.
@@ -61,6 +71,7 @@ def init_db():
     conn = get_connection()
     with conn.cursor() as cur:
         cur.execute(SCHEMA)
+        cur.execute(SYNC_STATUS_SCHEMA)
         for col, coltype in MIGRATION_COLUMNS:
             cur.execute(f"ALTER TABLE applications ADD COLUMN IF NOT EXISTS {col} {coltype}")
     conn.commit()
@@ -153,6 +164,31 @@ def update_application_fields(app_id: str, status: str = None, company: str = No
 
     with conn.cursor() as cur:
         cur.execute(f"UPDATE applications SET {', '.join(set_clauses)} WHERE id = %(id)s", params)
+    conn.commit()
+    conn.close()
+
+
+def get_last_synced_at():
+    """ISO timestamp string of the last time /api/sync ran, or None if it
+    has never run yet."""
+    conn = get_connection()
+    with conn.cursor() as cur:
+        cur.execute("SELECT last_synced_at FROM sync_status WHERE id = 1")
+        row = cur.fetchone()
+    conn.close()
+    return row["last_synced_at"] if row else None
+
+
+def set_last_synced_at(iso_timestamp: str):
+    conn = get_connection()
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO sync_status (id, last_synced_at) VALUES (1, %(ts)s)
+            ON CONFLICT (id) DO UPDATE SET last_synced_at = %(ts)s
+            """,
+            {"ts": iso_timestamp},
+        )
     conn.commit()
     conn.close()
 

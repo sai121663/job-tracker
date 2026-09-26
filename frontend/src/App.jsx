@@ -69,20 +69,22 @@ function renderSummary(text, position) {
   );
 }
 
+// How often the frontend quietly re-checks for updates from the
+// background auto-sync (GitHub Actions, every 30 min) while a tab is left
+// open - independent of that schedule, just keeps what's on screen fresh.
+const POLL_INTERVAL_MS = 60_000;
+
 export default function App() {
   const [authorized, setAuthorized] = useState(null);
-  const [groqConfigured, setGroqConfigured] = useState(false);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
-  const [syncMessage, setSyncMessage] = useState(null);
+  const [lastSyncedAt, setLastSyncedAt] = useState(null);
 
   async function checkHealth() {
     try {
       const res = await apiFetch("/api/health");
       const data = await res.json();
       setAuthorized(Boolean(data.tokenPresent));
-      setGroqConfigured(Boolean(data.groqConfigured));
     } catch {
       setAuthorized(false);
     }
@@ -98,34 +100,30 @@ export default function App() {
     }
   }
 
+  async function loadLastSynced() {
+    try {
+      const res = await apiFetch("/api/last-sync");
+      const data = await res.json();
+      setLastSyncedAt(data.lastSyncedAt);
+    } catch {
+      // best-effort - the label just stays as whatever it last showed
+    }
+  }
+
   useEffect(() => {
     checkHealth();
     loadApplications();
+    loadLastSynced();
+
+    // Auto-sync now happens server-side on a schedule, not from a button
+    // here - poll periodically so a left-open tab picks up new emails and
+    // an updated timestamp without needing a manual refresh.
+    const interval = setInterval(() => {
+      loadApplications();
+      loadLastSynced();
+    }, POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
   }, []);
-
-  async function handleSync() {
-    setSyncing(true);
-    setSyncMessage(null);
-    try {
-      const res = await apiFetch("/api/sync", { method: "POST" });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setAuthorized(false);
-        setSyncMessage(data.error || "Sync failed.");
-      } else {
-        const aiNote = data.usedAi ? " (AI-classified)" : "";
-        setSyncMessage(
-          `Checked ${data.fetched} emails — stored ${data.stored}, skipped ${data.skipped} as not job-related.${aiNote}`
-        );
-        await loadApplications();
-      }
-    } catch {
-      setSyncMessage("Could not reach the server. Is the backend running?");
-    } finally {
-      setSyncing(false);
-    }
-  }
 
   async function handleToggleStar(id, starred) {
     setApplications((prev) =>
@@ -176,19 +174,25 @@ export default function App() {
       {authorized === false && (
         <div className="banner warning">
           Gmail isn't connected yet. In your terminal, run{" "}
-          <code>python authorize.py</code> in the backend folder, then click
-          "Sync now" below.
+          <code>python authorize.py</code> in the backend folder - the
+          scheduled auto-sync will pick things up from there.
         </div>
       )}
 
       <div className="toolbar">
-        <button onClick={handleSync} disabled={syncing}>
-          {syncing ? "Syncing..." : "Sync now"}
-        </button>
-        <span className={`ai-indicator ${groqConfigured ? "on" : "off"}`}>
-          {groqConfigured ? "AI summaries: on" : "AI summaries: off"}
+        <span className="sync-status">
+          {lastSyncedAt ? (
+            <>
+              ✓ Last updated at{" "}
+              {new Date(lastSyncedAt).toLocaleTimeString(undefined, {
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </>
+          ) : (
+            "Waiting for the first sync..."
+          )}
         </span>
-        {syncMessage && <span className="sync-message">{syncMessage}</span>}
       </div>
 
       {loading ? (
@@ -271,7 +275,8 @@ function ApplicationCard({ app, onToggleStar }) {
           <pre className="full-email-body">{app.body}</pre>
         ) : (
           <p className="muted">
-            Full email not saved for this one yet - click "Sync now" to fetch it.
+            Full email not saved for this one yet - it'll show up after the
+            next sync.
           </p>
         )}
       </details>
