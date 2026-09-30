@@ -116,10 +116,12 @@ export default function App() {
     loadLastSynced();
 
     // Auto-sync now happens server-side on a schedule, not from a button
-    // here - poll periodically so a left-open tab picks up new emails and
-    // an updated timestamp without needing a manual refresh.
+    // here - poll periodically so a left-open tab picks up an updated
+    // timestamp without needing a manual refresh. Deliberately NOT
+    // re-loading applications here: that list should only change what's on
+    // screen on a full page reload (see handleCategoryToggle below), not
+    // silently out from under someone mid-read every 60 seconds.
     const interval = setInterval(() => {
-      loadApplications();
       loadLastSynced();
     }, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
@@ -136,16 +138,18 @@ export default function App() {
     });
   }
 
-  // Closing a category box clears out whatever (non-starred) emails were
-  // showing in it, so old ones don't keep piling up. currentItems is read
-  // fresh on every close, so it always reflects what was actually visible.
+  // Closing a category box marks whatever (non-starred) emails were showing
+  // in it for deletion server-side right away, so they don't keep piling up
+  // in the database. But the visible list is deliberately left alone here -
+  // they stay on screen until the next full page reload, rather than
+  // vanishing the instant the box is closed. currentItems is read fresh on
+  // every close, so it always reflects what was actually visible.
   async function handleCategoryToggle(currentItems, e) {
     if (e.target.open) return;
 
     const idsToDismiss = currentItems.filter((a) => !a.starred).map((a) => a.id);
     if (idsToDismiss.length === 0) return;
 
-    setApplications((prev) => prev.filter((a) => !idsToDismiss.includes(a.id)));
     try {
       await apiFetch("/api/applications/dismiss", {
         method: "POST",
@@ -153,8 +157,8 @@ export default function App() {
         body: JSON.stringify({ ids: idsToDismiss }),
       });
     } catch {
-      // best-effort - if this fails, the next "Sync now" will just bring
-      // them back rather than silently losing anything.
+      // best-effort - if this fails, they'll just still be there next reload
+      // rather than silently losing anything.
     }
   }
 
